@@ -7,14 +7,14 @@ on:
     branches: [ main ]
 
 jobs:
-  e2e-tests:
+  cypress-tests:
     runs-on: ubuntu-latest
 
     services:
       postgres:
         image: postgres:15
         ports:
-          - 6543:5432
+          - 5433:5432
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
@@ -26,7 +26,7 @@ jobs:
           --health-retries 5
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -45,39 +45,33 @@ jobs:
         working-directory: ./frontend
         run: npm install
 
-      - name: Generate Prisma client
-        working-directory: ./backend
-        run: npx prisma generate --schema=src/prisma/schema.prisma
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+      - name: Wait for PostgreSQL
+        run: |
+          for i in {1..20}; do
+            pg_isready -h localhost -p 5433 -U postgres && break
+            echo "Waiting for PostgreSQL..."
+            sleep 3
+          done
 
-      - name: Push DB schema
+      - name: Push DB schema with Prisma
         working-directory: ./backend
         run: npx prisma db push --schema=src/prisma/schema.prisma
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/realworld
 
       - name: Seed database
         working-directory: ./backend
         run: npx tsx src/prisma/seed.ts
         env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/realworld
 
-      - name: Install Docker Compose
-        uses: docker/setup-buildx-action@v3
-
-      - name: Start services with Docker Compose
+      - name: Start backend and frontend with Docker Compose
         run: docker-compose up -d --build
 
-      - name: Wait for backend readiness
+      - name: Wait for backend to be ready
         run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:3000/api/articles > /dev/null; then
-              echo "Backend is up!"
-              break
-            fi
-            echo "Waiting for backend..."
-            sleep 3
+          for i in {1..20}; do
+            curl -s http://localhost:3000/api/articles && break || sleep 3
           done
 
       - name: Run Cypress tests
@@ -85,11 +79,11 @@ jobs:
         env:
           CYPRESS_baseUrl: http://localhost:4100
 
-      - name: Upload Cypress screenshots and videos (if failed)
+      - name: Upload Cypress artifacts on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: cypress-artifacts
           path: |
-            cypress/screenshots
             cypress/videos
+            cypress/screenshots
