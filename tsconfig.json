@@ -1,0 +1,14 @@
+// tsconfig.json (в корне)
+{
+  "compilerOptions": {
+    "target": "ES6",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "types": ["cypress"],
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["cypress/**/*.ts"]
+}

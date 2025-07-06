@@ -1,0 +1,23 @@
+{
+  "name": "realworld-full",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@badeball/cypress-cucumber-preprocessor": "^22.2.0",
+    "@bahmutov/cypress-esbuild-preprocessor": "^2.2.5",
+    "@cypress/browserify-preprocessor": "^3.0.2",
+    "@cypress/webpack-preprocessor": "^6.0.4",
+    "cypress": "^14.5.1",
+    "esbuild": "^0.25.5",
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}
