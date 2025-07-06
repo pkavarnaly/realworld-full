@@ -1,0 +1,95 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        ports:
+          - 6543:5432
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: realworld
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install root dependencies
+        run: npm install
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm install
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Generate Prisma client
+        working-directory: ./backend
+        run: npx prisma generate --schema=src/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+
+      - name: Push DB schema
+        working-directory: ./backend
+        run: npx prisma db push --schema=src/prisma/schema.prisma
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+
+      - name: Seed database
+        working-directory: ./backend
+        run: npx tsx src/prisma/seed.ts
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/realworld
+
+      - name: Install Docker Compose
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start services with Docker Compose
+        run: docker-compose up -d --build
+
+      - name: Wait for backend readiness
+        run: |
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/api/articles > /dev/null; then
+              echo "Backend is up!"
+              break
+            fi
+            echo "Waiting for backend..."
+            sleep 3
+          done
+
+      - name: Run Cypress tests
+        run: npx cypress run
+        env:
+          CYPRESS_baseUrl: http://localhost:4100
+
+      - name: Upload Cypress screenshots and videos (if failed)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-artifacts
+          path: |
+            cypress/screenshots
+            cypress/videos

@@ -1,0 +1,77 @@
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Cypress output & cache
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+.cypress_cache/
+.cypress-logs/
+
+# Cypress plugin preprocessor artifacts
+dist/
+
+# Build output (e.g. frontend)
+build/
+dist/
+out/
+.next/
+coverage/
+
+# Env & config
+.env
+.env.*.local
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+
+# Prisma
+prisma/migrations/
+prisma/dev.db
+*.sqlite
+*.sqlite-journal
+
+# Test
+*.log
+*.tsbuildinfo
+coverage/
+.nyc_output/
+
+# GitHub Codespaces / DevContainers
+.devcontainer/
+
+# Optional: logs or dumps
+*.log
+*.tgz
+*.dump
+*.pid
+
+# Avoid committing personal keys accidentally
+*.pem
+*.key
+*.crt
+
+# macOS crash reports
+*.crash
+
+# Qase & Allure reports
+allure-results/
+allure-report/
+qase-reports/
