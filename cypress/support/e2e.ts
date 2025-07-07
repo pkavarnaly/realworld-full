@@ -1,2 +1,2 @@
 import './commands';
-//import '@badeball/cypress-cucumber-preprocessor/commands';
+import '@shelex/cypress-allure-plugin';
